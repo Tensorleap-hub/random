@@ -1,9 +1,9 @@
-from leap_binder import input_encoder, preprocess_func_leap, gt_encoder, bar_visualizer, leap_binder, metrics
-import tensorflow as tf
+from leap_binder import input_encoder, preprocess_func_leap, leap_binder, input_encoder_2,  input_encoder, gt_encoder, dummy_loss
 import os
 import numpy as np
 from code_loader.helpers import visualize
-
+import onnxruntime as ort
+import tensorflow as tf
 
 def check_custom_test():
     check_generic = True
@@ -12,38 +12,23 @@ def check_custom_test():
         leap_binder.check()
     print("started custom tests")
     responses = preprocess_func_leap()
+    ort_session = ort.InferenceSession("model/new_2.onnx")
     for subset in responses:  # train, val
         for idx in range(3): # analyze first 3 images
-            # load the model
-            dir_path = os.path.dirname(os.path.abspath(__file__))
-            model_path = 'model/first_model.h5'
-            cnn = tf.keras.models.load_model(os.path.join(dir_path, model_path))
-
-            # get input and gt
             image = input_encoder(idx, subset)
+            input_2 = input_encoder_2(idx, subset)
+            onnx_outputs = ort_session.run(None, {'input_rgb': image[None, ...],
+                                                                           'input_pick_features': input_2[None, ...]})
+            onnx_outputs = [tf.convert_to_tensor(otpt) for otpt in onnx_outputs]
+            # get input and gt
             gt = gt_encoder(idx, subset)
 
-            # add batch to input & gt
-            concat = np.expand_dims(image, axis=0)
-            gt_expend = np.expand_dims(gt, axis=0)
 
             # infer model
-            y_pred = cnn([concat])
-
-            # get inputs & outputs (no batch)
-            gt_vis = bar_visualizer(gt)
-            pred_vis = bar_visualizer(y_pred[0].numpy())
-
-            # plot inputs & outputs
-            if plot_vis:
-                visualize(gt_vis)
-                visualize(pred_vis)
-
-            # print metrics
-            metric_result = metrics(y_pred.numpy())
-            print(metric_result)
-
-
+            ls = dummy_loss(onnx_outputs[0][None, ...],
+                                   onnx_outputs[1][None, ...],
+                                   onnx_outputs[2][None, ...],
+                                   tf.convert_to_tensor(gt[None, ...]))
             # print metadata
             for metadata_handler in leap_binder.setup_container.metadata:
                 curr_metadata = metadata_handler.function(idx, subset)
