@@ -7,13 +7,15 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.8, <3.11"
-code-loader = "1.0.60.dev2"
+#code-loader = "1.0.60.dev2"
 tensorflow-io-gcs-filesystem = [{ version = "0.30.0", markers = "sys_platform != 'darwin'" },
                                 { version = "0.34.0", markers = "sys_platform == 'darwin'" }]
 tensorflow = { version = "2.11.0", markers = "sys_platform != 'darwin'" }
-code-loader-helpers = "^1.0.13"
+#code-loader-helpers = "^1.0.13"
 tensorflow-macos = { version = "2.11.0", markers = "sys_platform == 'darwin'" }
-torch = "1.12.1"
+#torch = "1.12.1"
+code-loader = "^1.0.77.1"
+code-loader-helpers = "^1.0.20"
 
 
 [tool.poetry.group.dev.dependencies]

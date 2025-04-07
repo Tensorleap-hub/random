@@ -1,4 +1,4 @@
-from leap_binder import input_encoder, preprocess_func_leap, gt_encoder, bar_visualizer, leap_binder, metrics
+from leap_binder import input_encoder, gt_encoder, preprocess_func_leap, leap_binder, frames_grid_visualzier, frame_visualzier, dummy_loss
 import tensorflow as tf
 import os
 import numpy as np
@@ -16,7 +16,7 @@ def check_custom_test():
         for idx in range(3): # analyze first 3 images
             # load the model
             dir_path = os.path.dirname(os.path.abspath(__file__))
-            model_path = 'model/first_model.h5'
+            model_path = 'model/tsm.h5'
             cnn = tf.keras.models.load_model(os.path.join(dir_path, model_path))
 
             # get input and gt
@@ -30,19 +30,13 @@ def check_custom_test():
             # infer model
             y_pred = cnn([concat])
 
-            # get inputs & outputs (no batch)
-            gt_vis = bar_visualizer(gt)
-            pred_vis = bar_visualizer(y_pred[0].numpy())
-
             # plot inputs & outputs
             if plot_vis:
-                visualize(gt_vis)
-                visualize(pred_vis)
-
-            # print metrics
-            metric_result = metrics(y_pred.numpy())
-            print(metric_result)
-
+                grid = frames_grid_visualzier(concat)
+                frame = frame_visualzier(concat)
+                visualize(grid)
+                visualize(frame)
+            loss = dummy_loss(gt_expend, y_pred)
 
             # print metadata
             for metadata_handler in leap_binder.setup_container.metadata:
